@@ -1114,6 +1114,84 @@ notif.Parent = screenGui
 local notifCorner = Instance.new("UICorner")
 notifCorner.CornerRadius = UDim.new(0, 8)
 notifCorner.Parent = notif
+-- أضف هذا الكود في نهاية السكريبت، قبل السطر الأخير task.wait(3) notif:Destroy()
+
+-- ============ إضافة زر VI للرجوع ============
+local viButton = Instance.new("TextButton")
+viButton.Size = UDim2.new(0, 50, 0, 50)
+viButton.Position = UDim2.new(0, 10, 0.5, -25)
+viButton.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+viButton.BackgroundTransparency = 0.15
+viButton.Text = "VI"
+viButton.TextColor3 = Color3.fromRGB(0, 200, 255)
+viButton.TextSize = 18
+viButton.Font = Enum.Font.GothamBold
+viButton.Visible = false  -- مخفي في البداية
+viButton.Parent = screenGui
+
+-- دائرة للزر
+local viCorner = Instance.new("UICorner")
+viCorner.CornerRadius = UDim.new(1, 0)
+viCorner.Parent = viButton
+
+-- توهج للزر
+local viStroke = Instance.new("UIStroke")
+viStroke.Color = Color3.fromRGB(0, 200, 255)
+viStroke.Thickness = 2
+viStroke.Transparency = 0.3
+viStroke.Parent = viButton
+
+-- تأثير hover
+local function animateVIButton(hover)
+    local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local targetColor = hover and Color3.fromRGB(0, 200, 255) or Color3.fromRGB(0, 150, 255)
+    local targetTrans = hover and 0.05 or 0.15
+    local tween = ts:Create(viButton, tweenInfo, {BackgroundColor3 = targetColor, BackgroundTransparency = targetTrans})
+    tween:Play()
+end
+
+viButton.MouseEnter:Connect(function() animateVIButton(true) end)
+viButton.MouseLeave:Connect(function() animateVIButton(false) end)
+
+-- متغير لتتبع حالة الواجهة
+local guiVisible = true
+
+-- تعديل زر الإغلاق الحالي
+local oldCloseFunc = closeBtn.MouseButton1Click
+closeBtn.MouseButton1Click:Connect(function()
+    if guiVisible then
+        mainFrame.Visible = false
+        viButton.Visible = true
+        guiVisible = false
+    end
+end)
+
+-- إظهار الواجهة عند الضغط على زر VI
+viButton.MouseButton1Click:Connect(function()
+    if not guiVisible then
+        mainFrame.Visible = true
+        viButton.Visible = false
+        guiVisible = true
+    end
+end)
+
+-- إذا كان المستخدم يريد إغلاق كامل من زر VI (اختياري: سحب سريع للضغط مرتين)
+local lastPressTime = 0
+viButton.MouseButton1Click:Connect(function()
+    local currentTime = tick()
+    if currentTime - lastPressTime < 0.5 then
+        -- ضغط سريع مرتين لإغلاق كامل
+        screenGui:Destroy()
+    end
+    lastPressTime = currentTime
+end)
+
+-- تحديث موضع زر VI عند تغيير حجم الشاشة (اختياري)
+uis.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch and not guiVisible then
+        -- يمكن إضافة منطق إضافي هنا
+    end
+end)
 
 task.wait(3)
 notif:Destroy()
